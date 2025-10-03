@@ -2,23 +2,23 @@
 
 This repository contains formalizations in Rocq (Coq) and Lean 4 of an intuitionistic (but not constructive) proof of the following proposition:
 
-> A pair $(L, U)$ of subsets of rational numbers $\mathbb{Q}$ is called a *cut* if the following conditions are satisfied:
-> - $\forall a,b : \mathbb{Q},\, a < b \land b \in L \to a \in L$.
-> - $\forall a,b : \mathbb{Q},\, a < b \land a \in U \to b \in U$.
-> - $\forall a : \mathbb{Q},\, a \in L \to \exists b : \mathbb{Q},\, a < b \land b \in L$.
-> - $\forall b : \mathbb{Q},\, b \in U \to \exists a : \mathbb{Q},\, a < b \land a \in U$.
-> - $\forall a,b : \mathbb{Q},\, a \in L \land b \in U \to a < b$.
+> A pair $(L, U)$ of subsets of rational numbers ℚ is called a *cut* if the following conditions are satisfied:
+> - $\forall a,b : ℚ, a < b \land b \in L \to a \in L$.
+> - $\forall a,b : ℚ, a < b \land a \in U \to b \in U$.
+> - $\forall a : ℚ, a \in L \to \exists b : ℚ, a < b \land b \in L$.
+> - $\forall b : ℚ, b \in U \to \exists a : ℚ, a < b \land a \in U$.
+> - $\forall a,b : ℚ, a \in L \land b \in U \to a < b$.
 > 
 > For a cut $(L, U)$, we write
->  - $\overline{L} := \{b : \mathbb{Q} \mid \forall a : \mathbb{Q},\, a < b \to a \in L\}$,
->  - $\overline{U} := \{a : \mathbb{Q} \mid \forall b : \mathbb{Q},\, a < b \to b \in U\}$.
+>  - $\overline{L} := \Set{b : ℚ \mid \forall a : ℚ, a < b \to a \in L}$,
+>  - $\overline{U} := \Set{a : ℚ \mid \forall b : ℚ, a < b \to b \in U}$.
 > 
-> Let $a, b \in \mathbb{Q}$ be a pair of rational numbers and let $(q_i, r_i)_{i\in \iota}$ be an indexed set of pairs of rational numbers.
+> Let $a, b \in ℚ$ be a pair of rational numbers and let $(q_i, r_i)_{i\in \iota}$ be an indexed set of pairs of rational numbers.
 > We assume the following condition:
->> For all cuts $(L,U)$, if $ q_i \in L \to r_i \in \overline{L}$ and $ r_i \in U \to q_i \in \overline{U}$ for all $i\in\iota$, then $a \in \overline{L}\to b \in L$ and $b \in \overline{U} \to a \in U$.
+>> For all cuts $(L,U)$, if $q_i \in L \to r_i \in \overline{L}$ and $r_i \in U \to q_i \in \overline{U}$ for all $i\in\iota$, then $a \in \overline{L}\to b \in L$ and $b \in \overline{U} \to a \in U$.
 > 
-> Then, there exists a finite subset of indices $i_0,\ldots i_{n-1} \in \iota$ such that
->> For all cuts $(L,U)$, if $ q_i \in L \to r_i \in \overline{L}$ and $ r_i \in U \to q_i \in \overline{U}$ for all $i= i_0,\ldots, i_{n-1}$, then $a \in \overline{L}\to b \in L$ and $b \in \overline{U} \to a \in U$.
+> Then, there exists a finite subset of indices $i_0,\ldots, i_{n-1} \in \iota$ such that
+>> For all cuts $(L,U)$, if $q_i \in L \to r_i \in \overline{L}$ and $r_i \in U \to q_i \in \overline{U}$ for all $i= i_0,\ldots, i_{n-1}$, then $a \in \overline{L}\to b \in L$ and $b \in \overline{U} \to a \in U$.
 
 Note that the above assumption is classically equivalent to the condition that open intervals $(q_i, r_i)$ cover the closed interval $[a,b]$.
 Thus, this proposition is classically equivalent to the Heine-Borel theorem for closed intervals.
