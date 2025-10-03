@@ -1,6 +1,6 @@
 # Heine-Borel Theorem for Cuts
 
-This repository contains an intuitionistic proof in Lean 4 of the following proposition:
+This repository contains formalizations in Rocq (Coq) and Lean 4 of an intuitionistic (but not constructive) proof of the following proposition:
 
 > A pair $(L, U)$ of subsets of rational numbers $\mathbb{Q}$ is called a *cut* if the following conditions are satisfied:
 > - $\forall a,b : \mathbb{Q},\, a < b \land b \in L \to a \in L$.
@@ -23,5 +23,4 @@ This repository contains an intuitionistic proof in Lean 4 of the following prop
 Note that the above assumption is classically equivalent to the condition that open intervals $(q_i, r_i)$ cover the closed interval $[a,b]$.
 Thus, this proposition is classically equivalent to the Heine-Borel theorem for closed intervals.
 
-## Caution
-Since our code uses mathlib4, the result may depend on the axiom of choice unless the version of the library is exactly the same.
+**Caution**: In Lean 4, since our code uses mathlib4, the result may depend on the axiom of choice unless the version of the library is exactly the same.
