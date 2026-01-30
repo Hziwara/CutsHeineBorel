@@ -364,7 +364,7 @@ Proof.
     apply Qplus_lt_le_compat; [exact Hxy|apply Qle_refl].
 Qed.
 
-Module ELR.
+Module LowerCut.
 Record t := {
   L : Q -> Prop ;
   lower : forall x, L x -> forall y, Qle y x -> L y ;
@@ -380,14 +380,14 @@ Definition Icc_outer (q r : Q) (x : t) : Prop :=
 Definition Ioo_outer (q r : Q) (x : t) : Prop :=
   L x q -> ge_q x r.
 
-End ELR.
+End LowerCut.
 
-Notation ELR := ELR.t.
+Notation LowerCut := LowerCut.t.
 
-Program Definition MaxCoveredEndELR (a : Q) (ι : Type)
-        (qs rs : ι -> Q) : ELR :=
+Program Definition MaxCoveredEndLowerCut (a : Q) (ι : Type)
+        (qs rs : ι -> Q) : LowerCut :=
   {|
-    ELR.L := fun q => exists q', q < q' /\ exists (n : nat) (is : Fin.t n -> ι),
+    LowerCut.L := fun q => exists q', q < q' /\ exists (n : nat) (is : Fin.t n -> ι),
                 Covered (Icc a q') n (fun i => qs (is i)) (fun i => rs (is i))
   |}.
 Next Obligation.
@@ -403,8 +403,8 @@ Next Obligation.
   - apply left_lt_middleRat_of_lt, H0.
 Qed.
 
-Lemma outer_MaxCoveredEndELR (a : Q) (ι : Type) (qs rs : ι -> Q) :
-  forall i, ELR.Ioo_outer (qs i) (rs i) (MaxCoveredEndELR a ι qs rs).
+Lemma outer_MaxCoveredEndLowerCut (a : Q) (ι : Type) (qs rs : ι -> Q) :
+  forall i, LowerCut.Ioo_outer (qs i) (rs i) (MaxCoveredEndLowerCut a ι qs rs).
 Proof.
   intros i.
   intros [q [hq1 [n [is [Hci Hco]]]]] q' hq'.
@@ -442,8 +442,8 @@ Proof.
          exact (h _ (middleRat_lt_right_of_lt hq')).
 Qed.
 
-Lemma MaxCoveredEndELR_ge (a : Q) (ι : Type) (qs rs : ι -> Q) :
-  ELR.ge_q (MaxCoveredEndELR a ι qs rs) a.
+Lemma MaxCoveredEndLowerCut_ge (a : Q) (ι : Type) (qs rs : ι -> Q) :
+  LowerCut.ge_q (MaxCoveredEndLowerCut a ι qs rs) a.
 Proof.
   intros y hy.
   exists (middleRat y a).
@@ -463,40 +463,38 @@ Proof.
 Qed.
 
 Theorem HeineBorelL (a b : Q) (ι : Type) (qs rs : ι -> Q)
-  (h : (forall r, (forall i, ELR.Ioo_outer (qs i) (rs i) r) -> ELR.Icc_outer a b r)) :
+  (h : (forall r, (forall i, LowerCut.Ioo_outer (qs i) (rs i) r) -> LowerCut.Icc_outer a b r)) :
   exists (n : nat) (is : Fin.t n -> ι),
     Covered (Icc a b) n (fun i => qs (is i)) (fun i => rs (is i)).
 Proof.
-  set (c := MaxCoveredEndELR a ι qs rs).
-  assert (Hc_in : ELR.Icc_outer a b c).
-  { apply h. intros i. apply outer_MaxCoveredEndELR. }
-  destruct (Hc_in (MaxCoveredEndELR_ge a ι qs rs)) as [b' Hb'].
+  set (c := MaxCoveredEndLowerCut a ι qs rs).
+  assert (Hc_in : LowerCut.Icc_outer a b c).
+  { apply h. intros i. apply outer_MaxCoveredEndLowerCut. }
+  destruct (Hc_in (MaxCoveredEndLowerCut_ge a ι qs rs)) as [b' Hb'].
   destruct Hb' as [hb [n [is Hcov]]].
   exists n, is.
   eapply CSet_subset_trans; [exact (Icc_mono_right _ _ _ (Qlt_le_weak _ _ hb))|exact Hcov].
 Qed.
 
-Print Assumptions HeineBorelL.
-
-Definition ELR_toCuts (x : ELR) : Cuts := {|
-  Cuts.L := ELR.L x ;
+Definition LowerCut_toCuts (x : LowerCut) : Cuts := {|
+  Cuts.L := LowerCut.L x ;
   Cuts.U := fun _ => False ;
-  Cuts.lower := ELR.lower x ;
+  Cuts.lower := LowerCut.lower x ;
   Cuts.upper := fun _ h => False_ind _ h ;
-  Cuts.open_L := ELR.open_L x ;
+  Cuts.open_L := LowerCut.open_L x ;
   Cuts.open_U := fun _ h => False_ind _ h ;
   Cuts.L_lt_U := fun _ hL _ hU => False_ind _ hU
 |}.
 
-Theorem HeineBorel_ELR (a b : Q) (ι : Type) (qs rs : ι -> Q)
-  (h : (forall r, (forall i, ELR.Ioo_outer (qs i) (rs i) r) -> ELR.Icc_outer a b r)) :
+Theorem HeineBorel_LowerCut (a b : Q) (ι : Type) (qs rs : ι -> Q)
+  (h : (forall r, (forall i, LowerCut.Ioo_outer (qs i) (rs i) r) -> LowerCut.Icc_outer a b r)) :
   exists (n : nat) (is : Fin.t n -> ι),
-    (forall r, (forall i, ELR.Ioo_outer (qs (is i)) (rs (is i)) r) -> ELR.Icc_outer a b r).
+    (forall r, (forall i, LowerCut.Ioo_outer (qs (is i)) (rs (is i)) r) -> LowerCut.Icc_outer a b r).
 Proof.
   destruct (HeineBorelL a b ι qs rs h) as [n [is Hcov]].
   exists n, is.
   intros r Hr.
-  assert (Hr' : outer (CSet_FinUnion (fun i => Ioo (qs (is i)) (rs (is i)))) (ELR_toCuts r)).
+  assert (Hr' : outer (CSet_FinUnion (fun i => Ioo (qs (is i)) (rs (is i)))) (LowerCut_toCuts r)).
   {
     apply (proj2 (CSet_FinUnion_outer_iff _ _ _)).
     intros i.
@@ -505,12 +503,12 @@ Proof.
     - intros hU. exfalso. exact hU.
   }
   destruct Hcov as [Hinner Houter].
-  destruct (Houter (ELR_toCuts r) Hr') as [Hga Hlb].
+  destruct (Houter (LowerCut_toCuts r) Hr') as [Hga Hlb].
   intros hinner.
   exact (Hga hinner).
 Qed.
 
-Module EUR.
+Module UpperCut.
 Record t := {
   U : Q -> Prop ;
   upper : forall x, U x -> forall y, Qle x y -> U y ;
@@ -526,29 +524,29 @@ Definition Ioo_outer (q r : Q) (x : t) : Prop :=
 Definition Icc_outer (q r : Q) (x : t) : Prop :=
   le_q x r -> U x q.
 
-End EUR.
+End UpperCut.
 
-Notation EUR := EUR.t.
+Notation UpperCut := UpperCut.t.
 
-Definition EUR_toCuts (x : EUR) : Cuts := {|
+Definition UpperCut_toCuts (x : UpperCut) : Cuts := {|
   Cuts.L := fun _ => False ;
-  Cuts.U := EUR.U x ;
+  Cuts.U := UpperCut.U x ;
   Cuts.lower := fun _ h => False_ind _ h ;
-  Cuts.upper := EUR.upper x ;
+  Cuts.upper := UpperCut.upper x ;
   Cuts.open_L := fun _ h => False_ind _ h ;
-  Cuts.open_U := EUR.open_U x ;
+  Cuts.open_U := UpperCut.open_U x ;
   Cuts.L_lt_U := fun _ hL _ => False_ind _ hL
 |}.
 
-Theorem EUR_FinCovering_of_ELR_Covering (a b : Q) (ι : Type) (qs rs : ι -> Q)
-  (h : (forall r, (forall i, ELR.Ioo_outer (qs i) (rs i) r) -> ELR.Icc_outer a b r)) :
+Theorem UpperCut_FinCovering_of_LowerCut_Covering (a b : Q) (ι : Type) (qs rs : ι -> Q)
+  (h : (forall r, (forall i, LowerCut.Ioo_outer (qs i) (rs i) r) -> LowerCut.Icc_outer a b r)) :
   exists (n : nat) (is : Fin.t n -> ι),
-    (forall r, (forall i, EUR.Ioo_outer (qs (is i)) (rs (is i)) r) -> EUR.Icc_outer a b r).
+    (forall r, (forall i, UpperCut.Ioo_outer (qs (is i)) (rs (is i)) r) -> UpperCut.Icc_outer a b r).
 Proof.
   destruct (HeineBorelL a b ι qs rs h) as [n [is Hcov]].
   exists n, is.
   intros r Hr.
-  assert (Hr' : outer (CSet_FinUnion (fun i => Ioo (qs (is i)) (rs (is i)))) (EUR_toCuts r)).
+  assert (Hr' : outer (CSet_FinUnion (fun i => Ioo (qs (is i)) (rs (is i)))) (UpperCut_toCuts r)).
   {
     apply (proj2 (CSet_FinUnion_outer_iff _ _ _)).
     intros i.
@@ -557,26 +555,26 @@ Proof.
     - exact (Hr i).
   }
   destruct Hcov as [Hinner Houter].
-  destruct (Houter (EUR_toCuts r) Hr') as [Hga Hlb].
+  destruct (Houter (UpperCut_toCuts r) Hr') as [Hga Hlb].
   intros hinner.
   exact (Hlb hinner).
 Qed.
 
-Theorem EUR_Covering_of_ELR_Covering (a b : Q) (ι : Type) (qs rs : ι -> Q)
-  (h : (forall r, (forall i, ELR.Ioo_outer (qs i) (rs i) r) -> ELR.Icc_outer a b r)) :
-  (forall r, (forall i, EUR.Ioo_outer (qs i) (rs i) r) -> EUR.Icc_outer a b r).
+Theorem UpperCut_Covering_of_LowerCut_Covering (a b : Q) (ι : Type) (qs rs : ι -> Q)
+  (h : (forall r, (forall i, LowerCut.Ioo_outer (qs i) (rs i) r) -> LowerCut.Icc_outer a b r)) :
+  (forall r, (forall i, UpperCut.Ioo_outer (qs i) (rs i) r) -> UpperCut.Icc_outer a b r).
 Proof.
   intros r Hr.
-  destruct (EUR_FinCovering_of_ELR_Covering a b ι qs rs h) as [n [is His]].
+  destruct (UpperCut_FinCovering_of_LowerCut_Covering a b ι qs rs h) as [n [is His]].
   apply His.
   intros i.
   exact (Hr (is i)).
 Qed.
 
-Program Definition MaxCoveredEndEUR (b : Q) (ι : Type)
-        (qs rs : ι -> Q) : EUR :=
+Program Definition MaxCoveredEndUpperCut (b : Q) (ι : Type)
+        (qs rs : ι -> Q) : UpperCut :=
   {|
-    EUR.U := fun q => exists q', q' < q /\ exists (n : nat) (is : Fin.t n -> ι),
+    UpperCut.U := fun q => exists q', q' < q /\ exists (n : nat) (is : Fin.t n -> ι),
                 Covered (Icc q' b) n (fun i => qs (is i)) (fun i => rs (is i))
   |}.
 Next Obligation.
@@ -592,8 +590,8 @@ Next Obligation.
   - apply middleRat_lt_right_of_lt, H0.
 Qed.
 
-Lemma outer_MaxCoveredEndEUR (b : Q) (ι : Type) (qs rs : ι -> Q) :
-  forall i, EUR.Ioo_outer (qs i) (rs i) (MaxCoveredEndEUR b ι qs rs).
+Lemma outer_MaxCoveredEndUpperCut (b : Q) (ι : Type) (qs rs : ι -> Q) :
+  forall i, UpperCut.Ioo_outer (qs i) (rs i) (MaxCoveredEndUpperCut b ι qs rs).
 Proof.
   intros i.
   intros [q [hq1 [n [is [Hci Hco]]]]] q' hq'.
@@ -631,8 +629,8 @@ Proof.
          exact (Cuts.upper _ _ (h5 h) _ (Qlt_le_weak _ _ hq1)).
 Qed.
 
-Lemma MaxCoveredEndEUR_le (b : Q) (ι : Type) (qs rs : ι -> Q) :
-  EUR.le_q (MaxCoveredEndEUR b ι qs rs) b.
+Lemma MaxCoveredEndUpperCut_le (b : Q) (ι : Type) (qs rs : ι -> Q) :
+  UpperCut.le_q (MaxCoveredEndUpperCut b ι qs rs) b.
 Proof.
   intros y hy.
   exists (middleRat b y).
@@ -652,28 +650,28 @@ Proof.
 Qed.
 
 Theorem HeineBorelU (a b : Q) (ι : Type) (qs rs : ι -> Q)
-  (h : (forall r, (forall i, EUR.Ioo_outer (qs i) (rs i) r) -> EUR.Icc_outer a b r)) :
+  (h : (forall r, (forall i, UpperCut.Ioo_outer (qs i) (rs i) r) -> UpperCut.Icc_outer a b r)) :
   exists (n : nat) (is : Fin.t n -> ι),
     Covered (Icc a b) n (fun i => qs (is i)) (fun i => rs (is i)).
 Proof.
-  set (c := MaxCoveredEndEUR b ι qs rs).
-  assert (Hc_in : EUR.Icc_outer a b c).
-  { apply h. intros i. apply outer_MaxCoveredEndEUR. }
-  destruct (Hc_in (MaxCoveredEndEUR_le b ι qs rs)) as [a' Ha'].
+  set (c := MaxCoveredEndUpperCut b ι qs rs).
+  assert (Hc_in : UpperCut.Icc_outer a b c).
+  { apply h. intros i. apply outer_MaxCoveredEndUpperCut. }
+  destruct (Hc_in (MaxCoveredEndUpperCut_le b ι qs rs)) as [a' Ha'].
   destruct Ha' as [ha [n [is Hcov]]].
   exists n, is.
   eapply CSet_subset_trans; [exact (Icc_mono_left _ _ _ (Qlt_le_weak _ _ ha))|exact Hcov].
 Qed.
 
-Theorem HeineBorel_EUR (a b : Q) (ι : Type) (qs rs : ι -> Q)
-  (h : (forall r, (forall i, EUR.Ioo_outer (qs i) (rs i) r) -> EUR.Icc_outer a b r)) :
+Theorem HeineBorel_UpperCut (a b : Q) (ι : Type) (qs rs : ι -> Q)
+  (h : (forall r, (forall i, UpperCut.Ioo_outer (qs i) (rs i) r) -> UpperCut.Icc_outer a b r)) :
   exists (n : nat) (is : Fin.t n -> ι),
-    (forall r, (forall i, EUR.Ioo_outer (qs (is i)) (rs (is i)) r) -> EUR.Icc_outer a b r).
+    (forall r, (forall i, UpperCut.Ioo_outer (qs (is i)) (rs (is i)) r) -> UpperCut.Icc_outer a b r).
 Proof.
   destruct (HeineBorelU a b ι qs rs h) as [n [is Hcov]].
   exists n, is.
   intros r Hr.
-  assert (Hr' : outer (CSet_FinUnion (fun i => Ioo (qs (is i)) (rs (is i)))) (EUR_toCuts r)).
+  assert (Hr' : outer (CSet_FinUnion (fun i => Ioo (qs (is i)) (rs (is i)))) (UpperCut_toCuts r)).
   {
     apply (proj2 (CSet_FinUnion_outer_iff _ _ _)).
     intros i.
@@ -682,20 +680,20 @@ Proof.
     - exact (Hr i).
   }
   destruct Hcov as [Hinner Houter].
-  destruct (Houter (EUR_toCuts r) Hr') as [Hga Hlb].
+  destruct (Houter (UpperCut_toCuts r) Hr') as [Hga Hlb].
   intros hinner.
   exact (Hlb hinner).
 Qed.
 
-Theorem ELR_FinCovering_of_EUR_Covering (a b : Q) (ι : Type) (qs rs : ι -> Q)
-  (h : (forall r, (forall i, EUR.Ioo_outer (qs i) (rs i) r) -> EUR.Icc_outer a b r)) :
+Theorem LowerCut_FinCovering_of_UpperCut_Covering (a b : Q) (ι : Type) (qs rs : ι -> Q)
+  (h : (forall r, (forall i, UpperCut.Ioo_outer (qs i) (rs i) r) -> UpperCut.Icc_outer a b r)) :
   exists (n : nat) (is : Fin.t n -> ι),
-    (forall r, (forall i, ELR.Ioo_outer (qs (is i)) (rs (is i)) r) -> ELR.Icc_outer a b r).
+    (forall r, (forall i, LowerCut.Ioo_outer (qs (is i)) (rs (is i)) r) -> LowerCut.Icc_outer a b r).
 Proof.
   destruct (HeineBorelU a b ι qs rs h) as [n [is Hcov]].
   exists n, is.
   intros r Hr.
-  assert (Hr' : outer (CSet_FinUnion (fun i => Ioo (qs (is i)) (rs (is i)))) (ELR_toCuts r)).
+  assert (Hr' : outer (CSet_FinUnion (fun i => Ioo (qs (is i)) (rs (is i)))) (LowerCut_toCuts r)).
   {
     apply (proj2 (CSet_FinUnion_outer_iff _ _ _)).
     intros i.
@@ -704,17 +702,17 @@ Proof.
     - intros hU. exfalso. exact hU.
   }
   destruct Hcov as [Hinner Houter].
-  destruct (Houter (ELR_toCuts r) Hr') as [Hga Hlb].
+  destruct (Houter (LowerCut_toCuts r) Hr') as [Hga Hlb].
   intros hinner.
   exact (Hga hinner).
 Qed.
 
-Theorem ELR_Covering_of_EUR_Covering (a b : Q) (ι : Type) (qs rs : ι -> Q)
-  (h : (forall r, (forall i, EUR.Ioo_outer (qs i) (rs i) r) -> EUR.Icc_outer a b r)) :
-  (forall r, (forall i, ELR.Ioo_outer (qs i) (rs i) r) -> ELR.Icc_outer a b r).
+Theorem LowerCut_Covering_of_UpperCut_Covering (a b : Q) (ι : Type) (qs rs : ι -> Q)
+  (h : (forall r, (forall i, UpperCut.Ioo_outer (qs i) (rs i) r) -> UpperCut.Icc_outer a b r)) :
+  (forall r, (forall i, LowerCut.Ioo_outer (qs i) (rs i) r) -> LowerCut.Icc_outer a b r).
 Proof.
   intros r Hr.
-  destruct (ELR_FinCovering_of_EUR_Covering a b ι qs rs h) as [n [is His]].
+  destruct (LowerCut_FinCovering_of_UpperCut_Covering a b ι qs rs h) as [n [is His]].
   apply His.
   intros i.
   exact (Hr (is i)).
@@ -737,32 +735,32 @@ Definition Icc_outer (q r : Q) (x : t) : Prop :=
 Definition Ioo_outer (q r : Q) (x : t) : Prop :=
   L x q -> ge_q x r.
 
-Definition toELR (x : t) : ELR :=
+Definition toLowerCut (x : t) : LowerCut :=
   {|
-    ELR.L := L x ;
-    ELR.lower := lower x ;
-    ELR.open_L := open_L x
+    LowerCut.L := L x ;
+    LowerCut.lower := lower x ;
+    LowerCut.open_L := open_L x
   |}.
 
 End LR.
   
 Notation LR := LR.t.
 
-Definition ELR_toLR (x : ELR) (h : exists y, ELR.L x y) : LR :=
+Definition LowerCut_toLR (x : LowerCut) (h : exists y, LowerCut.L x y) : LR :=
   {|
-    LR.L := ELR.L x ;
-    LR.lower := ELR.lower x ;
-    LR.open_L := ELR.open_L x ;
+    LR.L := LowerCut.L x ;
+    LR.lower := LowerCut.lower x ;
+    LR.open_L := LowerCut.open_L x ;
     LR.inhabited := h
   |}.
 
-Theorem ELR_Covering_of_LR_Covering (a b : Q) (ι : Type) (qs rs : ι -> Q)
+Theorem LowerCut_Covering_of_LR_Covering (a b : Q) (ι : Type) (qs rs : ι -> Q)
   (h : (forall r, (forall i, LR.Ioo_outer (qs i) (rs i) r) -> LR.Icc_outer a b r)) :
-  (forall r, (forall i, ELR.Ioo_outer (qs i) (rs i) r) -> ELR.Icc_outer a b r).
+  (forall r, (forall i, LowerCut.Ioo_outer (qs i) (rs i) r) -> LowerCut.Icc_outer a b r).
 Proof.
   intros r Hr.
   intros ha.
-  assert (hinh : exists y, ELR.L r y).
+  assert (hinh : exists y, LowerCut.L r y).
   {
     exists (a-1).
     apply ha.
@@ -771,7 +769,7 @@ Proof.
     compute.
     reflexivity.
   }
-  exact (h (ELR_toLR r hinh) Hr ha).
+  exact (h (LowerCut_toLR r hinh) Hr ha).
 Qed.
 
 Theorem HeineBorel_LR (a b : Q) (ι : Type) (qs rs : ι -> Q)
@@ -779,11 +777,11 @@ Theorem HeineBorel_LR (a b : Q) (ι : Type) (qs rs : ι -> Q)
   exists (n : nat) (is : Fin.t n -> ι),
     (forall r, (forall i, LR.Ioo_outer (qs (is i)) (rs (is i)) r) -> LR.Icc_outer a b r).
 Proof.
-  destruct (HeineBorel_ELR a b ι qs rs (ELR_Covering_of_LR_Covering a b ι qs rs h)) as [n [is Hcov]].
+  destruct (HeineBorel_LowerCut a b ι qs rs (LowerCut_Covering_of_LR_Covering a b ι qs rs h)) as [n [is Hcov]].
   exists n, is.
   intro r.
   intro hIoo. 
-  exact (Hcov (LR.toELR r) hIoo).
+  exact (Hcov (LR.toLowerCut r) hIoo).
 Qed.
 
 Module UR.
@@ -803,32 +801,32 @@ Definition Icc_outer (q r : Q) (x : t) : Prop :=
 Definition Ioo_outer (q r : Q) (x : t) : Prop :=
   U x r -> le_q x q.
 
-Definition toEUR (x : t) : EUR :=
+Definition toUpperCut (x : t) : UpperCut :=
   {|
-    EUR.U := U x ;
-    EUR.upper := upper x ;
-    EUR.open_U := open_U x
+    UpperCut.U := U x ;
+    UpperCut.upper := upper x ;
+    UpperCut.open_U := open_U x
   |}.
 
 End UR.
   
 Notation UR := UR.t.
 
-Definition EUR_toUR (x : EUR) (h : exists y, EUR.U x y) : UR :=
+Definition UpperCut_toUR (x : UpperCut) (h : exists y, UpperCut.U x y) : UR :=
   {|
-    UR.U := EUR.U x ;
-    UR.upper := EUR.upper x ;
-    UR.open_U := EUR.open_U x ;
+    UR.U := UpperCut.U x ;
+    UR.upper := UpperCut.upper x ;
+    UR.open_U := UpperCut.open_U x ;
     UR.inhabited := h
   |}.
 
-Theorem EUR_Covering_of_UR_Covering (a b : Q) (ι : Type) (qs rs : ι -> Q)
+Theorem UpperCut_Covering_of_UR_Covering (a b : Q) (ι : Type) (qs rs : ι -> Q)
   (h : (forall r, (forall i, UR.Ioo_outer (qs i) (rs i) r) -> UR.Icc_outer a b r)) :
-  (forall r, (forall i, EUR.Ioo_outer (qs i) (rs i) r) -> EUR.Icc_outer a b r).
+  (forall r, (forall i, UpperCut.Ioo_outer (qs i) (rs i) r) -> UpperCut.Icc_outer a b r).
 Proof.
   intros r Hr.
   intros hb.
-  assert (hinh : exists y, EUR.U r y).
+  assert (hinh : exists y, UpperCut.U r y).
   {
     exists (b+1).
     apply hb.
@@ -837,7 +835,7 @@ Proof.
     compute.
     reflexivity.
   }
-  exact (h (EUR_toUR r hinh) Hr hb).
+  exact (h (UpperCut_toUR r hinh) Hr hb).
 Qed.
 
 Theorem HeineBorel_UR (a b : Q) (ι : Type) (qs rs : ι -> Q)
@@ -845,9 +843,9 @@ Theorem HeineBorel_UR (a b : Q) (ι : Type) (qs rs : ι -> Q)
   exists (n : nat) (is : Fin.t n -> ι),
     (forall r, (forall i, UR.Ioo_outer (qs (is i)) (rs (is i)) r) -> UR.Icc_outer a b r).
 Proof.
-  destruct (HeineBorel_EUR a b ι qs rs (EUR_Covering_of_UR_Covering a b ι qs rs h)) as [n [is Hcov]].
+  destruct (HeineBorel_UpperCut a b ι qs rs (UpperCut_Covering_of_UR_Covering a b ι qs rs h)) as [n [is Hcov]].
   exists n, is.
   intro r.
   intro hIoo. 
-  exact (Hcov (UR.toEUR r) hIoo).
+  exact (Hcov (UR.toUpperCut r) hIoo).
 Qed.
