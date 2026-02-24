@@ -1,6 +1,7 @@
 # Heine-Borel Theorem for Cuts
 
-This repository contains formalization in Rocq (Coq) of an intuitionistic (but not constructive) proof of the following propositions:
+This repository is for the results in Section 6 of the paper https://arxiv.org/abs/2602.19003 and
+contains formalization in Rocq (Coq) of an intuitionistic (but not constructive) proof of the following propositions:
 
 A set $L$ of rational numbers $\mathbb{Q}$ is called a *lowercut* if
 - $\forall a,b : \mathbb{Q}, a < b \land b \in L \to a \in L$.
@@ -21,3 +22,16 @@ Let $a, b \in \mathbb{Q}$ be a pair of rational numbers and let $(q_i, r_i)_{i\i
 
 Note that the above assumption is classically equivalent to the condition that open intervals $(q_i, r_i)$ cover the closed interval $[a,b]$.
 Thus, the first proposition is classically equivalent to the Heine-Borel theorem for closed intervals.
+
+## Citation
+```
+@misc{kasaura2026compactnessconstructivemathematicsaffine,
+      title={Compactness in Constructive Mathematics via Affine Logic}, 
+      author={Kazumi Kasaura},
+      year={2026},
+      eprint={2602.19003},
+      archivePrefix={arXiv},
+      primaryClass={math.LO},
+      url={https://arxiv.org/abs/2602.19003}, 
+}
+```
